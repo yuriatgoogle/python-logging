@@ -1,0 +1,124 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"extensions/v1beta1","kind":"DaemonSet","metadata":{"annotations":{},"labels":{"app":"stackdriver-logging-agent"},"name":"stackdriver-logging-agent","namespace":"stackdriver-agents"},"spec":{"selector":{"matchLabels":{"app":"stackdriver-logging-agent"}},"template":{"metadata":{"labels":{"app":"stackdriver-logging-agent"}},"spec":{"containers":[{"env":[{"name":"NODE_NAME","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"spec.nodeName"}}},{"name":"GOOGLE_APPLICATION_CREDENTIALS","valueFrom":{"configMapKeyRef":{"key":"credentials_path","name":"google-cloud-config"}}},{"name":"CLUSTER_NAME","valueFrom":{"configMapKeyRef":{"key":"cluster_name","name":"cluster-config"}}},{"name":"CLUSTER_LOCATION","valueFrom":{"configMapKeyRef":{"key":"cluster_location","name":"cluster-config"}}}],"image":"gcr.io/stackdriver-agents/stackdriver-logging-agent:0.3-1.5.34-1-k8s-1","imagePullPolicy":"IfNotPresent","livenessProbe":{"exec":{"command":["/bin/sh","-c","LIVENESS_THRESHOLD_SECONDS=${LIVENESS_THRESHOLD_SECONDS:-300}; STUCK_THRESHOLD_SECONDS=${LIVENESS_THRESHOLD_SECONDS:-900}; if [ ! -e /var/log/k8s-fluentd-buffers ]; then\n  exit 1;\nfi; touch -d \"${STUCK_THRESHOLD_SECONDS} seconds ago\" /tmp/marker-stuck; if [[ -z \"$(find /var/log/k8s-fluentd-buffers -type f -newer /tmp/marker-stuck -print -quit)\" ]]; then\n  rm -rf /var/log/fluentd-buffers;\n  exit 1;\nfi; touch -d \"${LIVENESS_THRESHOLD_SECONDS} seconds ago\" /tmp/marker-liveness; if [[ -z \"$(find /var/log/k8s-fluentd-buffers -type f -newer /tmp/marker-liveness -print -quit)\" ]]; then\n  exit 1;\nfi;\n"]},"failureThreshold":3,"initialDelaySeconds":600,"periodSeconds":60,"successThreshold":1,"timeoutSeconds":1},"name":"logging-agent","resources":{"limits":{"cpu":"1","memory":"500Mi"},"requests":{"cpu":"100m","memory":"200Mi"}},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","volumeMounts":[{"mountPath":"/var/log","name":"varlog"},{"mountPath":"/var/lib/docker/containers","name":"varlibdockercontainers","readOnly":true},{"mountPath":"/etc/google-fluentd/config.d","name":"config-volume"},{"mountPath":"/etc/google-cloud/","name":"google-cloud-config"}]}],"dnsPolicy":"ClusterFirst","restartPolicy":"Always","schedulerName":"default-scheduler","securityContext":{},"volumes":[{"hostPath":{"path":"/var/log","type":""},"name":"varlog"},{"hostPath":{"path":"/var/lib/docker/containers","type":""},"name":"varlibdockercontainers"},{"configMap":{"defaultMode":420,"name":"logging-agent-config"},"name":"config-volume"},{"configMap":{"defaultMode":420,"name":"google-cloud-config"},"name":"google-cloud-config"}]}},"updateStrategy":{"rollingUpdate":{"maxUnavailable":1},"type":"RollingUpdate"}}}
+  creationTimestamp: 2018-09-28T05:07:17Z
+  generation: 1
+  labels:
+    app: stackdriver-logging-agent
+  name: stackdriver-logging-agent
+  namespace: stackdriver-agents
+  resourceVersion: "993432"
+  selfLink: /apis/extensions/v1beta1/namespaces/stackdriver-agents/daemonsets/stackdriver-logging-agent
+  uid: 5ec713c8-c2dc-11e8-a0cd-42010a8a0093
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: stackdriver-logging-agent
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: stackdriver-logging-agent
+    spec:
+      containers:
+      - env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          valueFrom:
+            configMapKeyRef:
+              key: credentials_path
+              name: google-cloud-config
+        - name: CLUSTER_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_name
+              name: cluster-config
+        - name: CLUSTER_LOCATION
+          valueFrom:
+            configMapKeyRef:
+              key: cluster_location
+              name: cluster-config
+        image: gcr.io/stackdriver-agents/stackdriver-logging-agent:0.3-1.5.34-1-k8s-1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |
+              LIVENESS_THRESHOLD_SECONDS=${LIVENESS_THRESHOLD_SECONDS:-300}; STUCK_THRESHOLD_SECONDS=${LIVENESS_THRESHOLD_SECONDS:-900}; if [ ! -e /var/log/k8s-fluentd-buffers ]; then
+                exit 1;
+              fi; touch -d "${STUCK_THRESHOLD_SECONDS} seconds ago" /tmp/marker-stuck; if [[ -z "$(find /var/log/k8s-fluentd-buffers -type f -newer /tmp/marker-stuck -print -quit)" ]]; then
+                rm -rf /var/log/fluentd-buffers;
+                exit 1;
+              fi; touch -d "${LIVENESS_THRESHOLD_SECONDS} seconds ago" /tmp/marker-liveness; if [[ -z "$(find /var/log/k8s-fluentd-buffers -type f -newer /tmp/marker-liveness -print -quit)" ]]; then
+                exit 1;
+              fi;
+          failureThreshold: 3
+          initialDelaySeconds: 600
+          periodSeconds: 60
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: logging-agent
+        resources:
+          limits:
+            cpu: "1"
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /var/lib/docker/containers
+          name: varlibdockercontainers
+          readOnly: true
+        - mountPath: /etc/google-fluentd/config.d
+          name: config-volume
+        - mountPath: /etc/google-cloud/
+          name: google-cloud-config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /var/log
+          type: ""
+        name: varlog
+      - hostPath:
+          path: /var/lib/docker/containers
+          type: ""
+        name: varlibdockercontainers
+      - configMap:
+          defaultMode: 420
+          name: logging-agent-config
+        name: config-volume
+      - configMap:
+          defaultMode: 420
+          name: google-cloud-config
+        name: google-cloud-config
+  templateGeneration: 1
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+status:
+  currentNumberScheduled: 3
+  desiredNumberScheduled: 3
+  numberAvailable: 3
+  numberMisscheduled: 0
+  numberReady: 3
+  observedGeneration: 1
+  updatedNumberScheduled: 3
